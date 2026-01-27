@@ -62,7 +62,7 @@ public class Main extends Application {
 
         // --- TableView ---
         TableView<User> table = new TableView<>();
-        table.setItems(users);
+        table.setItems(users); // ✅ lien direct à l’ObservableList
 
         TableColumn<User, String> nameCol = new TableColumn<>("Nom");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -106,7 +106,7 @@ public class Main extends Application {
                 return;
             }
 
-            users.add(new User(name.trim(), email.trim(), age));
+            users.add(new User(name.trim(), email.trim(), age)); // ✅ refresh auto
             showAlert(Alert.AlertType.INFORMATION, "Succès", "Utilisateur ajouté.");
 
             nameField.clear();
