@@ -1,0 +1,72 @@
+/* ----- Global (optionnel) ----- */
+.root {
+    -fx-font-family: "Segoe UI", "SF Pro Display", "Inter", "Arial";
+    -fx-font-size: 13px;
+    -fx-background-color: #f5f6f7;
+}
+
+/* ----- MenuBar (barre du haut) ----- */
+.menu-bar {
+    -fx-background-color: rgba(255, 255, 255, 0.85);
+    -fx-background-insets: 0;
+    -fx-padding: 8px 10px 8px 10px;
+    -fx-border-color: rgba(0,0,0,0.08);
+    -fx-border-width: 0 0 1px 0;
+}
+
+/* Texte "Fichier", "Edition", ... */
+.menu-bar .label {
+    -fx-text-fill: #111827;
+    -fx-font-weight: 600;
+}
+
+/* Zone cliquable de chaque menu */
+.menu {
+    -fx-padding: 6px 10px 6px 10px;
+    -fx-background-radius: 10px;
+}
+
+/* Survol (effet pill) */
+.menu:hover,
+.menu:showing {
+    -fx-background-color: rgba(0,0,0,0.06);
+}
+
+/* ----- Menu déroulant ----- */
+.context-menu {
+    -fx-background-color: rgba(255,255,255,0.95);
+    -fx-background-radius: 12px;
+    -fx-padding: 8px;
+    -fx-border-color: rgba(0,0,0,0.08);
+    -fx-border-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 20, 0.2, 0, 8);
+}
+
+/* Items du menu */
+.menu-item {
+    -fx-background-radius: 10px;
+    -fx-padding: 8px 12px;
+}
+
+/* Texte des items */
+.menu-item .label {
+    -fx-text-fill: #111827;
+    -fx-font-weight: 500;
+}
+
+/* Survol item */
+.menu-item:focused,
+.menu-item:hover {
+    -fx-background-color: rgba(0,0,0,0.06);
+}
+
+/* Séparateur */
+.separator:horizontal .line {
+    -fx-border-color: rgba(0,0,0,0.10);
+    -fx-border-width: 1px;
+}
+
+/* (Optionnel) raccourcis à droite un peu plus discrets */
+.menu-item .accelerator-text {
+    -fx-text-fill: rgba(17,24,39,0.55);
+}
