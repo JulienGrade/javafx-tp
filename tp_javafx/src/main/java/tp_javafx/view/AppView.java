@@ -20,7 +20,7 @@ public class AppView {
 
     private final ObservableList<Appointment> appointments = FXCollections.observableArrayList();
 
-    // --- Filters UI (étape 8)
+    // --- Filters (étape 8/9)
     private final TextField searchField = new TextField();
     private final ComboBox<String> statusFilterBox = new ComboBox<>();
 
@@ -36,6 +36,9 @@ public class AppView {
     // --- UI
     private final TableView<Appointment> table = new TableView<>();
     private final ProgressIndicator loading = new ProgressIndicator();
+
+    // --- Status bar (étape 9)
+    private final Label statusBar = new Label();
 
     // --- Menu
     private final MenuItem logoutItem = new MenuItem("Déconnexion");
@@ -55,13 +58,11 @@ public class AppView {
         loading.setVisible(false);
         loading.setMaxSize(22, 22);
 
-        // --------- Filters bar (étape 8)
+        // --------- Filters bar
         searchField.setPromptText("Rechercher (client, email, motif)...");
         searchField.setPrefWidth(320);
 
-        statusFilterBox.setItems(FXCollections.observableArrayList(
-                "Tous", "PREVU", "ANNULE", "TERMINE"
-        ));
+        statusFilterBox.setItems(FXCollections.observableArrayList("Tous", "PREVU", "ANNULE", "TERMINE"));
         statusFilterBox.setValue("Tous");
 
         HBox filtersBar = new HBox(10,
@@ -83,7 +84,7 @@ public class AppView {
         ));
         timeBox.setPromptText("Heure");
 
-        reasonArea.setPromptText("Motif (détails...)");
+        reasonArea.setPromptText("Motif (Ctrl+Entrée pour ajouter)");
         reasonArea.setPrefRowCount(3);
         reasonArea.setWrapText(true);
 
@@ -91,6 +92,7 @@ public class AppView {
         statusBox.setValue(AppointmentStatus.PREVU);
 
         addButton.setMaxWidth(Double.MAX_VALUE);
+        addButton.setDefaultButton(false); // on garde Ctrl+Enter dans le TextArea
 
         GridPane form = new GridPane();
         form.setAlignment(Pos.CENTER_LEFT);
@@ -120,9 +122,6 @@ public class AppView {
         form.add(addButton, 1, 6);
 
         // --------- Table
-        // ⚠️ IMPORTANT : on ne met plus setItems(appointments) ici.
-        // Le controller va mettre la FilteredList sur la table.
-
         TableColumn<Appointment, String> clientCol = new TableColumn<>("Client");
         clientCol.setCellValueFactory(new PropertyValueFactory<>("clientName"));
 
@@ -149,10 +148,15 @@ public class AppView {
         table.getColumns().setAll(clientCol, emailCol, dateCol, timeCol, statusCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        VBox root = new VBox(12, menuBar, title, loading, filtersBar, form, table);
+        // Status bar
+        statusBar.setText("");
+        statusBar.setStyle("-fx-text-fill: rgba(0,0,0,0.65);");
+        statusBar.setPadding(new Insets(6, 2, 0, 2));
+
+        VBox root = new VBox(12, menuBar, title, loading, filtersBar, form, table, statusBar);
         root.setPadding(new Insets(20));
 
-        return new Scene(root, 980, 760);
+        return new Scene(root, 980, 780);
     }
 
     // --- Getters pour controller ---
@@ -174,7 +178,6 @@ public class AppView {
     public MenuItem getExitItem() { return exitItem; }
 
     public void setBusy(boolean busy) {
-        // On bloque form + table + filtres
         searchField.setDisable(busy);
         statusFilterBox.setDisable(busy);
 
@@ -200,6 +203,10 @@ public class AppView {
         clientField.requestFocus();
     }
 
+    public void setStatusMessage(String msg) {
+        statusBar.setText(msg == null ? "" : msg);
+    }
+
     public void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Erreur");
@@ -210,7 +217,7 @@ public class AppView {
 
     public void showInfo(String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Info");
+        alert.setTitle("Détails");
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();

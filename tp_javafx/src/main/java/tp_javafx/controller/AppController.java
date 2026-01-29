@@ -2,6 +2,11 @@ package tp_javafx.controller;
 
 import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
+import javafx.scene.Scene;
+import javafx.scene.control.TableRow;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import tp_javafx.api.AppointmentApi;
 import tp_javafx.model.Appointment;
 import tp_javafx.model.AppointmentStatus;
@@ -18,7 +23,7 @@ public class AppController {
     private final Runnable onLogout;
     private final Runnable onExit;
 
-    private FilteredList<Appointment> filtered; // <- étape 8
+    private FilteredList<Appointment> filtered;
 
     public AppController(AppView view, AppointmentApi api, String token, Runnable onLogout, Runnable onExit) {
         this.view = view;
@@ -28,21 +33,72 @@ public class AppController {
         this.onExit = onExit;
     }
 
-    public void init() {
+    public void init(Scene scene) {
+        initInternal();
+        registerShortcuts(scene);
+    }
+
+    // (on garde une init interne “classique”)
+    private void initInternal() {
         view.getLogoutItem().setOnAction(e -> onLogout.run());
         view.getExitItem().setOnAction(e -> onExit.run());
 
         view.getAddButton().setOnAction(e -> addAppointment());
 
-        // Filtrage: brancher la table sur une FilteredList
+        // FilteredList
         filtered = new FilteredList<>(view.getAppointments(), a -> true);
         view.getTable().setItems(filtered);
 
-        // Listeners filtres (recalcul predicate à chaque changement)
+        // Listeners filtres
         view.getSearchField().textProperty().addListener((obs, o, n) -> applyFilters());
         view.getStatusFilterBox().valueProperty().addListener((obs, o, n) -> applyFilters());
 
+        // Ctrl+Enter dans le motif -> ajoute (propre pour TextArea)
+        view.getReasonArea().setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER && e.isControlDown()) {
+                addAppointment();
+            }
+        });
+
+        // Double clic sur une ligne -> détails
+        view.getTable().setRowFactory(tv -> {
+            TableRow<Appointment> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    Appointment a = row.getItem();
+                    view.showInfo(
+                            "Client : " + a.getClientName()
+                                    + "\nEmail : " + a.getEmail()
+                                    + "\nDate : " + a.getDate() + " " + a.getTime()
+                                    + "\nStatut : " + a.getStatus()
+                                    + "\nMotif : " + a.getReason()
+                    );
+                }
+            });
+            return row;
+        });
+
         loadAppointments();
+    }
+
+    private void registerShortcuts(Scene scene) {
+        // Ctrl+N : focus client
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN),
+                () -> view.getClientField().requestFocus()
+        );
+
+        // Ctrl+L : logout
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN),
+                onLogout
+        );
+
+        // Ctrl+Q : quit
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN),
+                onExit
+        );
     }
 
     private void applyFilters() {
@@ -76,6 +132,7 @@ public class AppController {
 
     private void loadAppointments() {
         view.setBusy(true);
+        view.setStatusMessage("Chargement des rendez-vous...");
 
         Task<List<Appointment>> task = new Task<>() {
             @Override
@@ -87,13 +144,16 @@ public class AppController {
         task.setOnSucceeded(e -> {
             view.setBusy(false);
             view.getAppointments().setAll(task.getValue());
-            applyFilters(); // important : recalcul après setAll
+            applyFilters();
+            view.setStatusMessage("OK " + task.getValue().size() + " rendez-vous chargés.");
         });
 
         task.setOnFailed(e -> {
             view.setBusy(false);
             Throwable ex = task.getException();
-            view.showError(ex == null ? "Erreur inconnue." : ex.getMessage());
+            String msg = ex == null ? "Erreur inconnue." : ex.getMessage();
+            view.showError(msg);
+            view.setStatusMessage("Erreur: " + msg);
         });
 
         Thread t = new Thread(task);
@@ -133,6 +193,7 @@ public class AppController {
         );
 
         view.setBusy(true);
+        view.setStatusMessage("Création du rendez-vous...");
 
         Task<Appointment> task = new Task<>() {
             @Override
@@ -144,16 +205,18 @@ public class AppController {
         task.setOnSucceeded(e -> {
             view.setBusy(false);
             Appointment created = task.getValue();
-            view.getAppointments().add(created); // la FilteredList réagit automatiquement
+            view.getAppointments().add(created);
             view.clearForm();
-            applyFilters(); // au cas où ton filtre cache l’item
-            view.showInfo("Rendez-vous ajouté.");
+            applyFilters();
+            view.setStatusMessage("Rendez-vous ajouté.");
         });
 
         task.setOnFailed(e -> {
             view.setBusy(false);
             Throwable ex = task.getException();
-            view.showError(ex == null ? "Erreur inconnue." : ex.getMessage());
+            String msg = ex == null ? "Erreur inconnue." : ex.getMessage();
+            view.showError(msg);
+            view.setStatusMessage("Erreur: " + msg);
         });
 
         Thread t = new Thread(task);

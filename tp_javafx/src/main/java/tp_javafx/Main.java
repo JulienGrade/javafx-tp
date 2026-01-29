@@ -15,7 +15,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) {
         System.out.println(">>> RUNNING: tp_javafx.Main");
-        stage.setTitle("TP RDV - Étape 6 (Load RDV via API)");
+        stage.setTitle("TP RDV - Étape 9 (UX polish)");
 
         AppointmentApi api = new FakeAppointmentApi();
 
@@ -39,7 +39,7 @@ public class Main extends Application {
                     stage::close
             );
 
-            appController.init();
+            appController.init(appScene);
             stage.setScene(appScene);
         });
 
