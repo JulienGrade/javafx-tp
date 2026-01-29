@@ -1,6 +1,7 @@
 /Users/juliengrade/Desktop/DI-Etudiant/JavaFX/javafx-tp/tp_javafx/src/main/java/tp_javafx/Main.java
 /Users/juliengrade/Desktop/DI-Etudiant/JavaFX/javafx-tp/tp_javafx/src/main/java/tp_javafx/api/AppointmentApi.java
 /Users/juliengrade/Desktop/DI-Etudiant/JavaFX/javafx-tp/tp_javafx/src/main/java/tp_javafx/api/FakeAppointmentApi.java
+/Users/juliengrade/Desktop/DI-Etudiant/JavaFX/javafx-tp/tp_javafx/src/main/java/tp_javafx/controller/AppController.java
 /Users/juliengrade/Desktop/DI-Etudiant/JavaFX/javafx-tp/tp_javafx/src/main/java/tp_javafx/controller/LoginController.java
 /Users/juliengrade/Desktop/DI-Etudiant/JavaFX/javafx-tp/tp_javafx/src/main/java/tp_javafx/model/Appointment.java
 /Users/juliengrade/Desktop/DI-Etudiant/JavaFX/javafx-tp/tp_javafx/src/main/java/tp_javafx/model/AppointmentStatus.java
