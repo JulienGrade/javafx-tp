@@ -1,5 +1,6 @@
 package tp_javafx.controller;
 
+import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
 import tp_javafx.api.AppointmentApi;
 import tp_javafx.model.Appointment;
@@ -17,6 +18,8 @@ public class AppController {
     private final Runnable onLogout;
     private final Runnable onExit;
 
+    private FilteredList<Appointment> filtered; // <- étape 8
+
     public AppController(AppView view, AppointmentApi api, String token, Runnable onLogout, Runnable onExit) {
         this.view = view;
         this.api = api;
@@ -31,7 +34,44 @@ public class AppController {
 
         view.getAddButton().setOnAction(e -> addAppointment());
 
+        // Filtrage: brancher la table sur une FilteredList
+        filtered = new FilteredList<>(view.getAppointments(), a -> true);
+        view.getTable().setItems(filtered);
+
+        // Listeners filtres (recalcul predicate à chaque changement)
+        view.getSearchField().textProperty().addListener((obs, o, n) -> applyFilters());
+        view.getStatusFilterBox().valueProperty().addListener((obs, o, n) -> applyFilters());
+
         loadAppointments();
+    }
+
+    private void applyFilters() {
+        String query = view.getSearchField().getText();
+        String statusChoice = view.getStatusFilterBox().getValue();
+
+        final String q = (query == null) ? "" : query.trim().toLowerCase();
+        final boolean allStatus = (statusChoice == null || statusChoice.equals("Tous"));
+
+        filtered.setPredicate(appt -> {
+            if (appt == null) return false;
+
+            // filtre statut
+            if (!allStatus) {
+                AppointmentStatus s = appt.getStatus();
+                if (s == null || !s.name().equals(statusChoice)) return false;
+            }
+
+            // recherche texte (client/email/motif)
+            if (q.isEmpty()) return true;
+
+            return contains(appt.getClientName(), q)
+                    || contains(appt.getEmail(), q)
+                    || contains(appt.getReason(), q);
+        });
+    }
+
+    private boolean contains(String value, String query) {
+        return value != null && value.toLowerCase().contains(query);
     }
 
     private void loadAppointments() {
@@ -47,6 +87,7 @@ public class AppController {
         task.setOnSucceeded(e -> {
             view.setBusy(false);
             view.getAppointments().setAll(task.getValue());
+            applyFilters(); // important : recalcul après setAll
         });
 
         task.setOnFailed(e -> {
@@ -68,7 +109,6 @@ public class AppController {
         String reason = view.getReasonArea().getText();
         AppointmentStatus status = view.getStatusBox().getValue();
 
-        // --- Validations simples (propre pour TP)
         if (client == null || client.isBlank()
                 || email == null || email.isBlank()
                 || date == null
@@ -104,8 +144,9 @@ public class AppController {
         task.setOnSucceeded(e -> {
             view.setBusy(false);
             Appointment created = task.getValue();
-            view.getAppointments().add(created);
+            view.getAppointments().add(created); // la FilteredList réagit automatiquement
             view.clearForm();
+            applyFilters(); // au cas où ton filtre cache l’item
             view.showInfo("Rendez-vous ajouté.");
         });
 

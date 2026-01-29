@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tp_javafx.model.Appointment;
 import tp_javafx.model.AppointmentStatus;
@@ -18,6 +19,10 @@ import java.time.format.DateTimeFormatter;
 public class AppView {
 
     private final ObservableList<Appointment> appointments = FXCollections.observableArrayList();
+
+    // --- Filters UI (étape 8)
+    private final TextField searchField = new TextField();
+    private final ComboBox<String> statusFilterBox = new ComboBox<>();
 
     // --- Form fields
     private final TextField clientField = new TextField();
@@ -50,7 +55,24 @@ public class AppView {
         loading.setVisible(false);
         loading.setMaxSize(22, 22);
 
-        // Form setup
+        // --------- Filters bar (étape 8)
+        searchField.setPromptText("Rechercher (client, email, motif)...");
+        searchField.setPrefWidth(320);
+
+        statusFilterBox.setItems(FXCollections.observableArrayList(
+                "Tous", "PREVU", "ANNULE", "TERMINE"
+        ));
+        statusFilterBox.setValue("Tous");
+
+        HBox filtersBar = new HBox(10,
+                new Label("Recherche :"), searchField,
+                new Label("Statut :"), statusFilterBox
+        );
+        filtersBar.setAlignment(Pos.CENTER_LEFT);
+        filtersBar.setPadding(new Insets(8));
+        filtersBar.setStyle("-fx-background-color: rgba(0,0,0,0.03); -fx-background-radius: 10;");
+
+        // --------- Form setup
         clientField.setPromptText("Nom du client");
         emailField.setPromptText("Email");
         datePicker.setPromptText("Date");
@@ -97,8 +119,9 @@ public class AppView {
 
         form.add(addButton, 1, 6);
 
-        // Table
-        table.setItems(appointments);
+        // --------- Table
+        // ⚠️ IMPORTANT : on ne met plus setItems(appointments) ici.
+        // Le controller va mettre la FilteredList sur la table.
 
         TableColumn<Appointment, String> clientCol = new TableColumn<>("Client");
         clientCol.setCellValueFactory(new PropertyValueFactory<>("clientName"));
@@ -126,15 +149,18 @@ public class AppView {
         table.getColumns().setAll(clientCol, emailCol, dateCol, timeCol, statusCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        VBox root = new VBox(12, menuBar, title, loading, form, table);
+        VBox root = new VBox(12, menuBar, title, loading, filtersBar, form, table);
         root.setPadding(new Insets(20));
 
-        return new Scene(root, 950, 720);
+        return new Scene(root, 980, 760);
     }
 
     // --- Getters pour controller ---
     public ObservableList<Appointment> getAppointments() { return appointments; }
     public TableView<Appointment> getTable() { return table; }
+
+    public TextField getSearchField() { return searchField; }
+    public ComboBox<String> getStatusFilterBox() { return statusFilterBox; }
 
     public TextField getClientField() { return clientField; }
     public TextField getEmailField() { return emailField; }
@@ -148,7 +174,10 @@ public class AppView {
     public MenuItem getExitItem() { return exitItem; }
 
     public void setBusy(boolean busy) {
-        // On bloque le form + table pendant appels API
+        // On bloque form + table + filtres
+        searchField.setDisable(busy);
+        statusFilterBox.setDisable(busy);
+
         clientField.setDisable(busy);
         emailField.setDisable(busy);
         datePicker.setDisable(busy);
