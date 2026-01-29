@@ -3,8 +3,10 @@ package tp_javafx.controller;
 import javafx.concurrent.Task;
 import tp_javafx.api.AppointmentApi;
 import tp_javafx.model.Appointment;
+import tp_javafx.model.AppointmentStatus;
 import tp_javafx.view.AppView;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class AppController {
@@ -24,11 +26,11 @@ public class AppController {
     }
 
     public void init() {
-        // Menu actions
         view.getLogoutItem().setOnAction(e -> onLogout.run());
         view.getExitItem().setOnAction(e -> onExit.run());
 
-        // Chargement initial
+        view.getAddButton().setOnAction(e -> addAppointment());
+
         loadAppointments();
     }
 
@@ -44,8 +46,67 @@ public class AppController {
 
         task.setOnSucceeded(e -> {
             view.setBusy(false);
-            List<Appointment> result = task.getValue();
-            view.getAppointments().setAll(result); // refresh TableView auto
+            view.getAppointments().setAll(task.getValue());
+        });
+
+        task.setOnFailed(e -> {
+            view.setBusy(false);
+            Throwable ex = task.getException();
+            view.showError(ex == null ? "Erreur inconnue." : ex.getMessage());
+        });
+
+        Thread t = new Thread(task);
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void addAppointment() {
+        String client = view.getClientField().getText();
+        String email = view.getEmailField().getText();
+        LocalDate date = view.getDatePicker().getValue();
+        String time = view.getTimeBox().getValue();
+        String reason = view.getReasonArea().getText();
+        AppointmentStatus status = view.getStatusBox().getValue();
+
+        // --- Validations simples (propre pour TP)
+        if (client == null || client.isBlank()
+                || email == null || email.isBlank()
+                || date == null
+                || time == null || time.isBlank()
+                || reason == null || reason.isBlank()
+                || status == null) {
+            view.showError("Tous les champs sont obligatoires.");
+            return;
+        }
+        if (!email.contains("@")) {
+            view.showError("Email invalide (doit contenir @).");
+            return;
+        }
+
+        Appointment toCreate = new Appointment(
+                client.trim(),
+                email.trim(),
+                date,
+                time,
+                reason.trim(),
+                status
+        );
+
+        view.setBusy(true);
+
+        Task<Appointment> task = new Task<>() {
+            @Override
+            protected Appointment call() {
+                return api.createAppointment(token, toCreate);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            view.setBusy(false);
+            Appointment created = task.getValue();
+            view.getAppointments().add(created);
+            view.clearForm();
+            view.showInfo("Rendez-vous ajouté.");
         });
 
         task.setOnFailed(e -> {

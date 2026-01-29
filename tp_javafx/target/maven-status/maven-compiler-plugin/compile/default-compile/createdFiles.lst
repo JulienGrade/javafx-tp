@@ -1,5 +1,6 @@
 tp_javafx/model/AppointmentStatus.class
 tp_javafx/api/AppointmentApi.class
+tp_javafx/controller/AppController$2.class
 tp_javafx/controller/LoginController.class
 tp_javafx/model/Appointment.class
 tp_javafx/Main.class
