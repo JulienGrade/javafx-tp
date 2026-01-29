@@ -1,5 +1,7 @@
 tp_javafx/model/AppointmentStatus.class
+tp_javafx/api/AppointmentApi.class
 tp_javafx/model/Appointment.class
 tp_javafx/Main.class
 tp_javafx/view/LoginView.class
+tp_javafx/api/FakeAppointmentApi.class
 tp_javafx/view/AppView.class

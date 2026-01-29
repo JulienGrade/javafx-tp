@@ -10,13 +10,13 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
+
         System.out.println(">>> RUNNING: tp_javafx.Main");
         stage.setTitle("TP RDV - Étape 2 (Login -> App)");
 
         LoginView loginView = new LoginView();
         AppView appView = new AppView();
 
-        // On prépare les 2 scènes (réutilisables)
         final Scene[] loginScene = new Scene[1];
         final Scene[] appScene = new Scene[1];
 
@@ -29,7 +29,6 @@ public class Main extends Application {
                 return;
             }
 
-            // Auth hardcodée (pour commit 2)
             if (username.equals("agent") && password.equals("support")) {
                 stage.setScene(appScene[0]);
             } else {
