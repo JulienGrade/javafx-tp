@@ -33,10 +33,9 @@ public class Main extends Application {
             if (username.equals("agent") && password.equals("support")) {
                 stage.setScene(appScene[0]);
             } else {
-                loginView.showError("Identifiants invalides. (agent / support)");
+                loginView.showError("Identifiants invalides. help :(agent / support)");
             }
         });
-
         appScene[0] = appView.createScene(() -> stage.setScene(loginScene[0]));
 
         stage.setScene(loginScene[0]);
